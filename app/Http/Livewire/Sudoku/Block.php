@@ -25,7 +25,7 @@ class Block extends Component
         return view('livewire.sudoku.block');
     }
 
-    public function test()
+    public function getStatusClassName()
     {
         return match($this->status) {
             -1 => "empty",
