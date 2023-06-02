@@ -10,22 +10,29 @@ class Block extends Component
     public int $x;
     public int $y;
     public ?int $value = null;
-    public string $status = "empty";
+    public int $status = -1;
 
-    public function mount(int $x, int $y, ?int $value)
+    public function mount(int $x, int $y, ?int $value, int $status = -1)
     {
         $this->x = $x;
         $this->y = $y;
         $this->value = $value;
-
-        if ($this->value != null) {
-            $this->status = "fixed";
-        }
+        $this->status = $status;
     }
 
     public function render()
     {
         return view('livewire.sudoku.block');
+    }
+
+    public function test()
+    {
+        return match($this->status) {
+            -1 => "empty",
+            0 => "wrong",
+            1 => "correct",
+            2 => "fixed"
+        };
     }
 
     /**
@@ -43,22 +50,17 @@ class Block extends Component
      */
     public function selectNumber(int|string $key): void
     {
-        if ($this->status == "fixed") {
+        if ($this->status == 2) {
             return;
         }
 
         if ($key == "Backspace") {
-            $this->value = null;
-            return;
+            $key = null;
         }
 
         $this->value = $key;
 
-        if (SudokuService::checkNumber($this->x, $this->y, $key)) {
-            $this->status = "correct";
-        } else {
-            $this->status = "wrong";
-        }
+        $this->status = SudokuService::checkNumber($this->x, $this->y, $key);
     }
 
     protected function getListeners()
