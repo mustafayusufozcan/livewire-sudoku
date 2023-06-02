@@ -8,12 +8,6 @@ class SudokuService
 {
 
     /**
-     * Solved sudoku instance.
-     * @var array
-     */
-    private ?array $solvedSudoku;
-
-    /**
      * Sudoku instance.
      * @var array|null
      */
@@ -26,12 +20,17 @@ class SudokuService
                 for ($y = 0; $y < 9; $y++) {
                     $number = $this->findNumber($x, $y);
                     if ($number === false) {
-                        $this->solvedSudoku[$x] = [];
+                        $this->sudoku[$x] = [];
                         $y = -1;
                         continue;
                     }
-                    $this->solvedSudoku[$x][$y] = $number;
-                    $this->sudoku[$x][$y] = rand(1, 100) <= $difficulty ? $number : null;
+                    $isFixed = rand(1, 100) <= $difficulty ? true : false;
+                    //status= -1: boş, 0: hatalı, 1: doğru, 2: sabit
+                    $this->sudoku[$x][$y] = [
+                        "a" => $number,
+                        "v" => $isFixed ? $number : null,
+                        "s" => $isFixed ? 2 : -1,
+                    ];
                 }
             }
             $this->setSudoku();
@@ -41,10 +40,9 @@ class SudokuService
 
     private function getSudoku(): bool
     {
-        $sudoku = json_decode(Cookie::get("sudoku"));
+        $sudoku = json_decode(Cookie::get("sudoku"), true);
         if ($sudoku !== null) {
-            $this->solvedSudoku = $sudoku->solvedSudoku;
-            $this->sudoku = $sudoku->sudoku;
+            $this->sudoku = $sudoku;
 
             return true;
         }
@@ -53,10 +51,7 @@ class SudokuService
 
     public function setSudoku(): void
     {
-        cookie()->queue(cookie()->forever("sudoku", json_encode([
-            "solvedSudoku" => $this->solvedSudoku,
-            "sudoku" => $this->sudoku,
-        ])));
+        cookie()->queue(cookie()->forever("sudoku", json_encode($this->sudoku)));
     }
 
     private function findNumber(int $x, int $y): int|bool
@@ -97,8 +92,8 @@ class SudokuService
 
         for ($blockXIterator = $blockXStart; $blockXIterator < $blockXEnd; $blockXIterator++) {
             for ($blockYIterator = $blockYStart; $blockYIterator < $blockYEnd; $blockYIterator++) {
-                if (isset($this->solvedSudoku[$blockXIterator][$blockYIterator])) {
-                    if ($this->solvedSudoku[$blockXIterator][$blockYIterator] == $number) {
+                if (isset($this->sudoku[$blockXIterator][$blockYIterator])) {
+                    if ($this->sudoku[$blockXIterator][$blockYIterator]["a"] == $number) {
                         return true;
                     }
                 }
@@ -110,8 +105,8 @@ class SudokuService
     private function checkRow(int $x, int $number)
     {
         for ($rowIterator = 0; $rowIterator < 10; $rowIterator++) {
-            if (isset($this->solvedSudoku[$x][$rowIterator])) {
-                if ($this->solvedSudoku[$x][$rowIterator] == $number) {
+            if (isset($this->sudoku[$x][$rowIterator])) {
+                if ($this->sudoku[$x][$rowIterator]["a"] == $number) {
                     return true;
                 }
             }
@@ -122,20 +117,31 @@ class SudokuService
     private function checkColumn(int $y, int $number)
     {
         for ($columnIterator = 0; $columnIterator < 10; $columnIterator++) {
-            if (isset($this->solvedSudoku[$columnIterator][$y])) {
-                if ($this->solvedSudoku[$columnIterator][$y] == $number)
+            if (isset($this->sudoku[$columnIterator][$y])) {
+                if ($this->sudoku[$columnIterator][$y]["a"] == $number)
                     return true;
             }
         }
         return false;
     }
 
-    public static function checkNumber(int $x, int $y, int $number): bool
+    public static function checkNumber(int $x, int $y, ?int $number): string
     {
         $sudoku = new self();
         $sudoku->getSudoku();
-        if ($sudoku->solvedSudoku[$x][$y] === $number)
-            return true;
-        return false;
+        
+        $sudoku->sudoku[$x][$y]["v"] = $number;
+
+        $status = 0;
+        if ($sudoku->sudoku[$x][$y]["a"] === $number) {
+            $status = 1;
+        } elseif($number == null) {
+            $status = -1;
+        }
+
+        $sudoku->sudoku[$x][$y]["s"] = $status;
+        $sudoku->setSudoku();
+
+        return $status;
     }
 }
