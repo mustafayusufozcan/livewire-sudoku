@@ -7,12 +7,17 @@ use Livewire\Component;
 
 class Board extends Component
 {
+    private SudokuService $sudokuService;
     private array $sudoku;
+
+    public function __construct()
+    {
+        $this->sudokuService = new SudokuService();
+    }
 
     public function mount()
     {
-        $sudokuService = new SudokuService();
-        $this->sudoku = $sudokuService->create();
+        $this->sudoku = $this->sudokuService->create();
     }
 
     public function render()
@@ -20,5 +25,10 @@ class Board extends Component
         return view('livewire.sudoku.board', [
             "sudoku" => $this->sudoku
         ]);
+    }
+
+    public function newGame()
+    {
+        $this->sudoku = $this->sudokuService->create(true);
     }
 }
