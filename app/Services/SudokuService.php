@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Log;
 
 class SudokuService
 {
@@ -13,19 +14,33 @@ class SudokuService
      */
     private ?array $sudoku;
 
-    public function create(int $difficulty = 40): array
+    public function create(bool $newGame = false, int $difficulty = 30): array
     {
-        if (!$this->getSudoku()) {
+        if ($newGame || !$this->getSudoku()) {
             for ($x = 0; $x < 9; $x++) {
+                $reSelect = 0;
                 for ($y = 0; $y < 9; $y++) {
                     $number = $this->findNumber($x, $y);
                     if ($number === false) {
+                        //Sometimes the appropriate number for the line cannot be found. In these cases we have to have the numbers reselected...
                         $this->sudoku[$x] = [];
-                        $y = -1;
+                        if($reSelect == 5) {
+                            $x = -1;
+                            $y = 9;
+                        } else {
+                            $reSelect++;
+                            $y = -1;
+                        }
                         continue;
                     }
                     $isFixed = rand(1, 100) <= $difficulty ? true : false;
-                    //status= -1: boş, 0: hatalı, 1: doğru, 2: sabit
+                    /**
+                     * STATUS: 
+                     *  -1: Empty,
+                     *   0: Wrong,
+                     *   1: Correct
+                     *   2: Fixed
+                     */
                     $this->sudoku[$x][$y] = [
                         "a" => $number,
                         "v" => $isFixed ? $number : null,
