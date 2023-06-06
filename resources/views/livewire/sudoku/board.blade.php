@@ -2,7 +2,7 @@
     <div id="board">
         @for ($x = 0; $x < count($sudoku); $x++)
             @for ($y = 0; $y < count($sudoku[$x]); $y++)
-                @livewire('sudoku.block', ['x' => $x, "y" => $y, 'value' => $sudoku[$x][$y]["v"], 'status' => $sudoku[$x][$y]["s"]], key(1000 . $x . $y))
+                @livewire('sudoku.block', ['x' => $x, "y" => $y, 'value' => $sudoku[$x][$y]["v"], 'status' => $sudoku[$x][$y]["s"]], key(time() . $x . $y))
             @endfor
         @endfor
     </div>
