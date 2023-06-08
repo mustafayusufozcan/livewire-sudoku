@@ -8,6 +8,6 @@
     </div>
     <div class="d-flex justify-content-center gap-1 mt-4">
         <a href="javascript:;" wire:click="newGame" class="btn btn-warning">New Game</a>
-        <a href="javascript:;" class="btn btn-success">Hint</a>
+        <!-- <a href="javascript:;" class="btn btn-success">Hint</a> -->
     </div>
 </div>
