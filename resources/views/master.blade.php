@@ -27,7 +27,7 @@
                 return;
             }
 
-            if(el.getInnerHTML().trim() == key) {
+            if(el.getHTML().trim() == key) {
                 return;
             }
 
